@@ -25,3 +25,6 @@ add_subdirectory (fcpp)
 
 # lua
 add_subdirectory (lua)
+
+# soloud
+add_subdirectory (soloud20200207/contrib)

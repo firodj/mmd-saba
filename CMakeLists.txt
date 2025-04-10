@@ -59,7 +59,9 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR}/external/lua)
 include_directories(${PROJECT_SOURCE_DIR}/external/sol2/include)
 include_directories(${PROJECT_SOURCE_DIR}/external/tinyxfileloader/include)
 include_directories(${PROJECT_SOURCE_DIR}/external/tinyddsloader/include)
+
 include_directories(${BULLET_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/external/soloud20200207/include)
 
 if(WIN32)
     ADD_DEFINITIONS(-DUNICODE)
@@ -81,7 +83,7 @@ set (saba_viewer_LIBRARIES SabaViewer)
 if (UNIX)
     list (APPEND saba_viewer_LIBRARIES ${CMAKE_DL_LIBS})
 endif ()
-target_link_libraries(saba_viewer ${saba_viewer_LIBRARIES})
+target_link_libraries(saba_viewer ${saba_viewer_LIBRARIES} soloud)
 
 add_custom_command(TARGET saba_viewer POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

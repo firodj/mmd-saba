@@ -45,6 +45,10 @@
 #include <string>
 #include <thread>
 
+#include "soloud.h"
+#include "soloud_wav.h"
+#include "soloud_thread.h"
+
 namespace saba
 {
 	class ImGUILogSink : public spdlog::sinks::sink
@@ -146,6 +150,7 @@ namespace saba
 		, m_currentFrameBufferHeight(-1)
 		, m_currentMSAAEnable(false)
 		, m_currentMSAACount(0)
+		, m_soundHandler(0)
 	{
 		if (!glfwInit())
 		{
@@ -276,6 +281,11 @@ namespace saba
 		RefreshCustomCommand();
 
 		m_prevTime = GetTime();
+
+		// Initialize SoLoud (automatic back-end selection)
+		// also, enable visualization for FFT calc
+		m_soloud.init();
+		m_soloud.setVisualizationEnable(1);
 
 		return true;
 	}
@@ -1050,6 +1060,14 @@ namespace saba
 		ImGui::End();
 	}
 
+	void Viewer::DrawSoundCtrl()
+	{
+		if (ImGui::InputText("Sound",  (char*)m_soundFileName.c_str(), m_soundFileName.size(), ImGuiInputTextFlags_EnterReturnsTrue, nullptr, nullptr))
+		{
+
+		}
+	}
+
 	void Viewer::DrawLogUI()
 	{
 		if (!m_enableLogUI)
@@ -1209,6 +1227,10 @@ namespace saba
 		{
 			DrawAnimCtrl();
 		}
+		if (ImGui::CollapsingHeader("Sound"))
+		{
+			DrawSoundCtrl();
+		}
 		if (ImGui::CollapsingHeader("Camera"))
 		{
 			DrawCameraCtrl();
@@ -1360,13 +1382,24 @@ namespace saba
 			if (ImGui::Button("Stop"))
 			{
 				m_context.SetPlayMode(ViewerContext::PlayMode::Stop);
+
+				if (m_soundHandler) {
+					m_soloud.stop(m_soundHandler);
+					m_soundHandler = 0;
+				}
 			}
 		}
 		else
 		{
 			if (ImGui::Button("Play"))
 			{
+				if (m_soundHandler) {
+					m_soloud.stop(m_soundHandler);
+					m_soundHandler = 0;
+				}
+
 				m_context.SetPlayMode(ViewerContext::PlayMode::PlayStart);
+				m_soundHandler = m_soloud.play(m_wav);
 			}
 		}
 		if (ImGui::Button("Next Frame"))
@@ -1961,6 +1994,11 @@ namespace saba
 				return false;
 			}
 		}
+		else if (ext == "wav" || ext == "ogg") {
+			if (!LoadSoundFile(filepath)) {
+				return false;
+			}
+		}
 		else
 		{
 			SABA_INFO("Unknown File Ext [{}]", ext);
@@ -2496,6 +2534,17 @@ namespace saba
 		}
 
 		return mmdModel->LoadAnimation(vmd);
+	}
+
+	bool Viewer::LoadSoundFile(const std::string & filename) {
+		if (m_soundHandler) {
+			m_soloud.stop(m_soundHandler);
+			m_soundHandler = 0;
+		}
+
+		m_soundFileName = filename;
+		m_wav.load(filename.c_str());
+		m_wav.setLooping(0);
 	}
 
 	bool Viewer::LoadVPDFile(const std::string & filename)

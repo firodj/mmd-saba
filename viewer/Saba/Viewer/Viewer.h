@@ -23,6 +23,9 @@
 
 #include <imgui.h>
 #include <ImGuizmo.h>
+#include <soloud.h>
+#include <soloud_wav.h>
+#include <soloud_thread.h>
 
 #include <sol.hpp>
 
@@ -153,6 +156,7 @@ namespace saba
 		void DrawCustomMenu(CustomCommandMenuItem* parentItem);
 		void DrawUI();
 		void DrawInfoUI();
+		void DrawSoundCtrl();
 		void DrawLogUI();
 		void DrawCommandUI();
 		void DrawManip();
@@ -193,6 +197,7 @@ namespace saba
 		bool LoadVMDFile(const std::string& filename);
 		bool LoadVPDFile(const std::string& filename);
 		bool LoadXFile(const std::string& filename);
+		bool LoadSoundFile(const std::string & filename);
 
 		bool ClearAnimation(ModelDrawer* modelDrawer);
 		bool ClearSceneAnimation();
@@ -250,6 +255,11 @@ namespace saba
 		float		m_sceneUnitScale;
 
 		double		m_prevTime;
+
+		std::string    m_soundFileName;
+		SoLoud::Soloud m_soloud;
+		SoLoud::Wav    m_wav;
+		int            m_soundHandler;
 
 		// Model Name
 		size_t	m_modelNameID;
