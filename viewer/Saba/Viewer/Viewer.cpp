@@ -287,6 +287,30 @@ namespace saba
 		m_soloud.init();
 		m_soloud.setVisualizationEnable(1);
 
+		m_context.SetPlayModeCallback([&](ViewerContext::PlayMode playMode) {
+			switch (playMode) {
+			case ViewerContext::PlayMode::Stop:
+				if (!m_soundHandler) break;
+
+				m_soloud.fadeVolume(m_soundHandler, 0, 0.2);
+				m_soloud.scheduleStop(m_soundHandler, 0.2);
+				break;
+
+			case ViewerContext::PlayMode::PlayStart:
+				if (m_soundHandler) {
+					m_soloud.stop(m_soundHandler);
+				}
+
+				double seek = m_context.GetAnimationTime();
+				SABA_INFO("Play at {}", seek);
+
+				m_soundHandler = m_soloud.play(m_wav, 1, 0, 1);
+				m_soloud.seek(m_soundHandler, seek);
+				m_soloud.setPause(m_soundHandler, false);
+				break;
+			}
+		});
+
 		return true;
 	}
 
@@ -906,10 +930,32 @@ namespace saba
 		ImGui::EndMenu();
 	}
 
+	void Viewer::DrawWaveform()
+	{
+		float width = 300;
+		float height = 0;
+
+		ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Once);
+		ImGui::SetNextWindowPos(
+			ImVec2((float)m_context.GetWindowWidth() - width, (float)100 + 20),
+			ImGuiCond_FirstUseEver
+		);
+		if (!ImGui::Begin("Waveform")) {
+			ImGui::End();
+			return;
+		}
+
+		// Generate samples and plot them
+		float * samples = m_soloud.getWave();
+		ImGui::PlotLines("Samples", samples, 256);
+
+		ImGui::End();
+	}
 	void Viewer::DrawUI()
 	{
 		DrawInfoUI();
 		DrawLogUI();
+		DrawWaveform();
 		DrawCommandUI();
 		if (m_enableManip)
 		{
@@ -1213,7 +1259,6 @@ namespace saba
 			return;
 		}
 
-
 		float width = 300;
 		float height = 250;
 
@@ -1382,24 +1427,13 @@ namespace saba
 			if (ImGui::Button("Stop"))
 			{
 				m_context.SetPlayMode(ViewerContext::PlayMode::Stop);
-
-				if (m_soundHandler) {
-					m_soloud.stop(m_soundHandler);
-					m_soundHandler = 0;
-				}
 			}
 		}
 		else
 		{
 			if (ImGui::Button("Play"))
 			{
-				if (m_soundHandler) {
-					m_soloud.stop(m_soundHandler);
-					m_soundHandler = 0;
-				}
-
 				m_context.SetPlayMode(ViewerContext::PlayMode::PlayStart);
-				m_soundHandler = m_soloud.play(m_wav);
 			}
 		}
 		if (ImGui::Button("Next Frame"))

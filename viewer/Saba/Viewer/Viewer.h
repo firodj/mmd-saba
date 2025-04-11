@@ -170,6 +170,7 @@ namespace saba
 		void DrawLightGuide();
 		void DrawModelCtrl();
 		void DrawBGCtrl();
+		void DrawWaveform();
 		void UpdateAnimation();
 		void InitializeAnimation();
 		void ResetAnimation();

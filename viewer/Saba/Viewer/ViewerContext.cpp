@@ -137,4 +137,11 @@ namespace saba
 		return true;
 	}
 
+
+	void ViewerContext::OnPlayModeChange() {
+		if (m_playModeCallback) {
+			m_playModeCallback(m_playMode);
+		}
+	}
+
 }

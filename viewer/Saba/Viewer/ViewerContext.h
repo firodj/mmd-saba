@@ -13,7 +13,7 @@
 #include <string>
 #include "../GL/GLSLUtil.h"
 #include "../GL/GLObject.h"
-
+#include <functional>
 #include <glm/vec3.hpp>
 
 namespace saba
@@ -32,6 +32,8 @@ namespace saba
 			NextFrame,
 			PrevFrame,
 		};
+
+		using PlayModeCallback = std::function<void(PlayMode)>;
 
 		ViewerContext();
 
@@ -59,7 +61,7 @@ namespace saba
 		int GetWindowWidth() const { return m_windowWidth; }
 		int GetWindowHeight() const { return m_windowHeight; }
 		PlayMode GetPlayMode() const { return m_playMode; }
-
+		void SetPlayModeCallback(PlayModeCallback cb) { m_playModeCallback = cb; }
 		GLTextureRef GetDummyColorTexture() const { return m_dummyColorTexture; }
 		GLTextureRef GetDummyShadowDepthTexture() const { return m_dummyShadowDepthTexture; }
 		GLTextureRef GetCaptureTexture() const { return m_captureTex; }
@@ -77,7 +79,9 @@ namespace saba
 		void SetMSAACount(int count) { m_msaaCount = count; }
 		void SetFrameBufferSize(int w, int h) { m_frameBufferWidth = w; m_frameBufferHeight = h; }
 		void SetWindowSize(int w, int h) { m_windowWidth = w; m_windowHeight = h; }
-		void SetPlayMode(PlayMode playMode) { m_playMode = playMode; }
+		void OnPlayModeChange();
+
+		void SetPlayMode(PlayMode playMode) { m_playMode = playMode; OnPlayModeChange(); }
 
 		void SetCamera(const Camera& cam) { m_camera = cam; }
 		void SetLight(const Light& light) { m_light = light; }
@@ -119,6 +123,8 @@ namespace saba
 		bool	m_shadowEnabled;
 
 		glm::vec4	m_mmdGroundShadowColor;
+
+		PlayModeCallback m_playModeCallback;
 	};
 }
 
